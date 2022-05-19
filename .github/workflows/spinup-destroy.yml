@@ -46,7 +46,8 @@ jobs:
       - name: Create Azure Container App
         if: success()
         run: |
-          az containerapp create --name ${{env.AZURE_CONTAINERAPPS_NAME}} --resource-group ${{env.AZURE_RESOURCE_GROUP}} --location ${{env.AZURE_LOCATION}}                 
+          az containerapp create --name ${{env.AZURE_CONTAINERAPPS_NAME}} --resource-group ${{env.AZURE_RESOURCE_GROUP}} --environment ${{env.AZURE_CONTAINERAPPS_ENVIRONMENT}} --image mcr.microsoft.com/azuredocs/containerapps-helloworld:latest --target-port 80 --ingress 'external' --query properties.configuration.ingress.fqdn --cpu 2 --memory 4.0Gi
+          az containerapp create --name ${{env.AZURE_CONTAINERAPPS_NAME_STG}} --resource-group ${{env.AZURE_RESOURCE_GROUP}} --environment ${{env.AZURE_CONTAINERAPPS_ENVIRONMENT}} --image mcr.microsoft.com/azuredocs/containerapps-helloworld:latest --target-port 80 --ingress 'external' --query properties.configuration.ingress.fqdn --cpu 1 --memory 2.0Gi
       
       - name: Set Github Container Registry
         if: success()
