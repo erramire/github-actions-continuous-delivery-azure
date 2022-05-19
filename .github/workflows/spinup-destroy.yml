@@ -7,7 +7,7 @@ on:
 env:
   AZURE_RESOURCE_GROUP: dev-journey-build-actions
   AZURE_CONTAINERAPPS_ENVIRONMENT: dev-journey-build-containerenv
-  AZURE_LOCATION: '"EastUS 2"'
+  AZURE_LOCATION: '"East US 2"'
   AZURE_CONTAINERAPPS_NAME: "game-app"
   AZURE_CONTAINERAPPS_NAME_STG: "game-app-staging"
 
