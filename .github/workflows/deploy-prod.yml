@@ -9,7 +9,7 @@ env:
   DOCKER_IMAGE_NAME: game-azure-build
   IMAGE_REGISTRY_URL: docker.pkg.github.com  
   AZURE_CONTAINERAPPS_NAME: "game-app-staging"
-
+  AZURE_RESOURCE_GROUP: dev-journey-build-actions
 jobs:
   build:
     runs-on: ubuntu-latest
