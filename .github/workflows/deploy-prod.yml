@@ -64,7 +64,7 @@ jobs:
       - name: Deploy containnerapp 
         if: success()
         run: |
-          az containerapp update -n ${{env.AZURE_CONTAINERAPPS_NAME}} -g ${{env.AZURE_RESOURCE_GROUP: dev-journey-build-actions}} --image ${{env.IMAGE_REGISTRY_URL}}/${{ github.repository }}/${{env.DOCKER_IMAGE_NAME}}:${{ github.sha }}
+          az containerapp update -n ${{env.AZURE_CONTAINERAPPS_NAME}} -g ${{env.AZURE_RESOURCE_GROUP}} --image ${{env.IMAGE_REGISTRY_URL}}/${{ github.repository }}/${{env.DOCKER_IMAGE_NAME}}:${{ github.sha }}
 
       - name: Azure logout
         run: |
