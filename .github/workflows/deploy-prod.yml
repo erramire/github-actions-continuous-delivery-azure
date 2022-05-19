@@ -6,15 +6,9 @@ on:
       - main
 
 env:
-  DOCKER_IMAGE_NAME: erramire-azure-ttt # Must not exist as a package associated with a different repo!
-  IMAGE_REGISTRY_URL: docker.pkg.github.com
-  #################################################
-  ### USER PROVIDED VALUES ARE REQUIRED BELOW   ###
-  #################################################
-  #################################################
-  ### REPLACE USERNAME WITH GH USERNAME         ###
-  AZURE_WEBAPP_NAME: erramire-ttt-app
-  #################################################
+  DOCKER_IMAGE_NAME: game-azure-build
+  IMAGE_REGISTRY_URL: docker.pkg.github.com  
+  AZURE_CONTAINERAPPS_NAME: "game-app-staging"
 
 jobs:
   build:
@@ -67,11 +61,10 @@ jobs:
           username: ${{ secrets.GH_USER }}
           password: ${{ secrets.GH_PAT }}
 
-      - name: Deploy web app container
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: ${{env.AZURE_WEBAPP_NAME}}
-          images: ${{env.IMAGE_REGISTRY_URL}}/${{ github.repository }}/${{env.DOCKER_IMAGE_NAME}}:${{ github.sha }}
+      - name: Deploy containnerapp 
+        if: success()
+        run: |
+          az containerapp update -n ${{env.AZURE_CONTAINERAPPS_NAME}} -g ${{env.AZURE_RESOURCE_GROUP: dev-journey-build-actions}} --image ${{env.IMAGE_REGISTRY_URL}}/${{ github.repository }}/${{env.DOCKER_IMAGE_NAME}}:${{ github.sha }}
 
       - name: Azure logout
         run: |
