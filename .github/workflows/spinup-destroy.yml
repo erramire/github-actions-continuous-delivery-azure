@@ -5,16 +5,11 @@ on:
     types: [labeled]
 
 env:
-  AZURE_RESOURCE_GROUP: cd-with-actions
-  AZURE_APP_PLAN: actions-ttt-deployment
-  AZURE_LOCATION: '"Central US"'
-  #################################################
-  ### USER PROVIDED VALUES ARE REQUIRED BELOW   ###
-  #################################################
-  #################################################
-  ### REPLACE USERNAME WITH GH USERNAME         ###
-  AZURE_WEBAPP_NAME: erramire-ttt-app
-  #################################################
+  AZURE_RESOURCE_GROUP: dev-journey-build-actions
+  AZURE_CONTAINERAPPS_ENVIRONMENT: dev-journey-build-containerenv
+  AZURE_LOCATION: '"EastUS 2"'
+  AZURE_CONTAINERAPPS_NAME: "game-app"
+  AZURE_CONTAINERAPPS_NAME_STG: "game-app-staging"
 
 jobs:
   setup-up-azure-resources:
@@ -30,27 +25,36 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+      
+      - name: Configuring extensions 
+        if: success()
+        run: | 
+          az extension add --name containerapp --upgrade
+          az provider register --namespace Microsoft.App
+          az provider register --namespace Microsoft.OperationalInsights
 
       - name: Create Azure resource group
         if: success()
         run: |
           az group create --location ${{env.AZURE_LOCATION}} --name ${{env.AZURE_RESOURCE_GROUP}} --subscription ${{secrets.AZURE_SUBSCRIPTION_ID}}
 
-      - name: Create Azure app service plan
+      - name: Create Azure Container Environment
         if: success()
         run: |
-          az appservice plan create --resource-group ${{env.AZURE_RESOURCE_GROUP}} --name ${{env.AZURE_APP_PLAN}} --is-linux --sku F1 --subscription ${{secrets.AZURE_SUBSCRIPTION_ID}}
-
-      - name: Create webapp resource
+          az containerapp env create --name ${{env.AZURE_CONTAINERAPPS_ENVIRONMENT}} --resource-group ${{env.AZURE_RESOURCE_GROUP}} --location ${{env.AZURE_LOCATION}} --logs-workspace-id ${{secrets.WS_ID}} --logs-workspace-key ${{secrets.WS_KEY}}                
+      
+      - name: Create Azure Container App
         if: success()
         run: |
-          az webapp create --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --plan ${{ env.AZURE_APP_PLAN }} --name ${{ env.AZURE_WEBAPP_NAME }}  --deployment-container-image-name nginx --subscription ${{secrets.AZURE_SUBSCRIPTION_ID}}
-
-      - name: Configure webapp to use GitHub Packages
+          az containerapp create --name ${{env.AZURE_CONTAINERAPPS_NAME}} --resource-group ${{env.AZURE_RESOURCE_GROUP}} --location ${{env.AZURE_LOCATION}}                 
+      
+      - name: Set Github Container Registry
         if: success()
         run: |
-          az webapp config container set --docker-custom-image-name nginx --docker-registry-server-password ${{secrets.GH_PAT}} --docker-registry-server-url https://docker.pkg.github.com --docker-registry-server-user ${{secrets.GH_USER}} --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --subscription ${{secrets.AZURE_SUBSCRIPTION_ID}}
-
+          az config set extension.use_dynamic_install=yes_without_prompt
+          az containerapp registry set -n ${{env.AZURE_CONTAINERAPPS_NAME}} -g ${{env.AZURE_RESOURCE_GROUP}} --server docker.pkg.github.com --username  ${{ secrets.GH_USER }} --password ${{ secrets.GH_PAT }}          
+          az containerapp registry set -n ${{env.AZURE_CONTAINERAPPS_NAME_STG}} -g ${{env.AZURE_RESOURCE_GROUP}} --server docker.pkg.github.com --username  ${{ secrets.GH_USER }} --password ${{ secrets.GH_PAT }}                    
+  
   destroy-azure-resources:
     runs-on: ubuntu-latest
 
